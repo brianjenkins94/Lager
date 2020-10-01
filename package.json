@@ -1,0 +1,47 @@
+{
+  "name": "lager",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "analyze": "ts-node analyze.ts",
+    "build": "rollup --config --watch",
+    "docker": "rm -rf docker/logs/* && ts-node docker/index.ts",
+    "serve": "npx http-server docs/ -c-1 -o",
+    "start": "rm -rf cache/* report/* && node --max-old-space-size=8192 --require ts-node/register process.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/brianjenkins94/Lager.git"
+  },
+  "author": "Brian Jenkins",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/brianjenkins94/Lager/issues"
+  },
+  "homepage": "https://github.com/brianjenkins94/Lager#readme",
+  "dependencies": {
+    "bfj": "latest",
+    "convict": "latest",
+    "needle": "latest",
+    "ts-node": "latest",
+    "typescript": "latest"
+  },
+  "devDependencies": {
+    "@rollup/plugin-alias": "latest",
+    "@rollup/plugin-commonjs": "latest",
+    "@rollup/plugin-inject": "latest",
+    "@rollup/plugin-node-resolve": "latest",
+    "@types/convict": "latest",
+    "@types/node": "latest",
+    "@typescript-eslint/eslint-plugin": "latest",
+    "@typescript-eslint/parser": "latest",
+    "browserfs": "latest",
+    "eslint": "latest",
+    "rollup": "latest",
+    "rollup-plugin-node-builtins": "latest",
+    "rollup-plugin-node-globals": "latest",
+    "rollup-plugin-typescript2": "latest",
+    "tslib": "latest"
+  }
+}
