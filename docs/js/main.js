@@ -24013,10 +24013,8 @@ function __awaiter(thisArg, _arguments, P, generator) {
 
 var fs = BrowserFS.BFSRequire('fs');
 
-var path = BrowserFS.BFSRequire('path');
-
 /**
- * Recursively clones an object, optionally substituting objects for arrays of keys or primitives for their types. Does not mutate.
+ * Recursively clones an object, optionally substituting objects for arrays of keys or primitives for their types.
  *
  * @param object - The object to clone
  * @param options
@@ -24074,8 +24072,14 @@ function cloneDeep(object, options = {}) {
                     }
                 }
                 else {
+                    clone[key] = [];
                     for (const element of value) {
-                        clone[key] = recurse(element, depth);
+                        if (typeof element === "object" && element !== null) {
+                            clone[key].push(recurse(element, depth));
+                        }
+                        else {
+                            clone[key].push(element);
+                        }
                     }
                 }
             }
@@ -24103,7 +24107,7 @@ function cloneDeep(object, options = {}) {
     })(object);
 }
 /**
- * Recursively merges arguments. Does not mutate.
+ * Recursively merges arguments.
  *
  * @param args - Either an array of arrays or an array of objects to merge
  * @param options
@@ -24234,7 +24238,7 @@ BrowserFS.configure({
     }
 }, function (error) {
     if (error) {
-        throw new Error(error.toString());
+        throw new Error(error);
     }
 });
 // Adapted from https://github.com/ljharb/util.promisify/blob/master/implementation.js
@@ -24268,7 +24272,6 @@ function promisify(original) {
     });
     return Object.defineProperties(promisified, Object.getOwnPropertyDescriptors(original));
 }
-const __dirname = "/";
 // @ts-expect-error
 fs.appendFileSync = promisify(fs.appendFile);
 class EventEmitter {
@@ -24400,8 +24403,8 @@ document.addEventListener("DOMContentLoaded", function (event) {
                     //populateUniqueKeys(uniqueKeys[stringifiedKeys], data[stringifiedKeys]);
                     //condenseLossless(uniqueKeys[stringifiedKeys]);
                 }
-                //await stringify(path.join(__dirname, "cache", fileName + ".lossless.json"), uniqueKeys, { "space": "\t" });
-                fs.appendFileSync(path.join(__dirname, "cache", fileName + ".lossless.json"), "\n");
+                //await stringify(path.join(__dirname, "cache", fileName + ".lossless.json"), uniqueKeys);
+                //fs.appendFileSync(path.join(__dirname, "cache", fileName + ".lossless.json"), "\n");
             }
         });
     });

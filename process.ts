@@ -1,7 +1,7 @@
 import { createInterface } from "readline";
+import * as BFJ from "bfj";
 import * as fs from "fs";
 import * as path from "path";
-import { write as stringify } from "bfj";
 
 import { cloneDeep, mergeDeep, getKeyOfObjectByPath, arrayify } from "./src/util";
 import { config } from "./config";
@@ -139,6 +139,10 @@ const intervalReference = setInterval(function checkMemory() {
 
 	const schema = {};
 
+	if (!fs.existsSync(path.join(__dirname, "cache"))) {
+		fs.mkdirSync(path.join(__dirname, "cache"));
+	}
+
 	for (const fileName of Object.keys(files)) {
 		const data = {};
 
@@ -180,16 +184,22 @@ const intervalReference = setInterval(function checkMemory() {
 			condenseLossless(uniqueKeys[stringifiedKeys]);
 		}
 
-		await stringify(path.join(__dirname, "cache", fileName + ".lossless.json"), uniqueKeys, { "space": "\t" });
+		if (Object.keys(uniqueKeys).length > 0) {
+			await BFJ.write(path.join(__dirname, "cache", fileName + ".lossless.json"), uniqueKeys);
 
-		fs.appendFileSync(path.join(__dirname, "cache", fileName + ".lossless.json"), "\n");
+			fs.appendFileSync(path.join(__dirname, "cache", fileName + ".lossless.json"), "\n");
+		}
 	}
 
 	console.log();
 	console.log("Writing schema to disk...");
 	console.log();
 
-	fs.writeFileSync(path.join(__dirname, "report", "schema.json"), JSON.stringify(schema, undefined, "\t") + "\n");
+	if (!fs.existsSync(config.get("reportDirectory"))) {
+		fs.mkdirSync(config.get("reportDirectory"));
+	}
+
+	fs.writeFileSync(path.join(config.get("reportDirectory"), "schema.json"), JSON.stringify(schema, undefined, "\t") + "\n");
 
 	console.log("Peak memory used: " + Math.floor(peakResidentSetSize / 1024 / 1024) + "MB");
 

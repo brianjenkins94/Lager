@@ -1,5 +1,5 @@
 /**
- * Recursively clones an object, optionally substituting objects for arrays of keys or primitives for their types. Does not mutate.
+ * Recursively clones an object, optionally substituting objects for arrays of keys or primitives for their types.
  *
  * @param object - The object to clone
  * @param options
@@ -10,9 +10,9 @@
  * @returns The cloned object
  */
 export function cloneDeep(object, options = {}) {
-	options["keysOnly"] = options["keysOnly"] || false;
-	options["maxDepth"] = options["maxDepth"] || Infinity;
-	options["typesOnly"] = options["typesOnly"] || false;
+	options["keysOnly"] = options["keysOnly"] ?? false;
+	options["maxDepth"] = options["maxDepth"] ?? Infinity;
+	options["typesOnly"] = options["typesOnly"] ?? false;
 
 	if (options["typesOnly"] === true) {
 		options["keysOnly"] = false;
@@ -60,8 +60,14 @@ export function cloneDeep(object, options = {}) {
 						}
 					}
 				} else {
+					clone[key] = [];
+
 					for (const element of value) {
-						clone[key] = recurse(element, depth);
+						if (typeof element === "object" && element !== null) {
+							clone[key].push(recurse(element, depth));
+						} else {
+							clone[key].push(element);
+						}
 					}
 				}
 			} else if (typeof value === "object" && value !== null) {
@@ -88,7 +94,7 @@ export function cloneDeep(object, options = {}) {
 }
 
 /**
- * Recursively merges arguments. Does not mutate.
+ * Recursively merges arguments.
  *
  * @param args - Either an array of arrays or an array of objects to merge
  * @param options
@@ -97,7 +103,7 @@ export function cloneDeep(object, options = {}) {
  * @returns The merged object
  */
 export function mergeDeep(args, options = {}) {
-	options["treatObjectsAsNamedArrays"] = options["treatObjectsAsNamedArrays"] || false;
+	options["treatObjectsAsNamedArrays"] = options["treatObjectsAsNamedArrays"] ?? false;
 
 	function objectify(array) {
 		return (function recurse(object) {
@@ -185,11 +191,33 @@ export function getKeyOfObjectByPath(object, path) {
 }
 
 /**
- * Lossfully removes keys identified as noise. Mutates.
+ * Gets or creates the key of the given object by a path.
+ *
+ * @param object - The object to traverse
+ * @param path - An array of keys
+ *
+ * @returns The value of the object at the path
+ */
+export function getOrCreateKeyOfObjectByPath(object, path) {
+	return path.reduce(function(object, key) {
+		if (object[key] === undefined) {
+			object[key] = {};
+		}
+
+		return object[key];
+	}, object) || object;
+}
+
+/**
+ * Lossily removes keys identified as noise.
  *
  * @param uniqueKeys - An object of objects of JSON lines, binned by schema, then by key
+ *
+ * @returns The condensed object
  */
 export function condenseLossy(uniqueKeys) {
+	const concentrate = {};
+
 	// eslint-disable-next-line complexity
 	(function recurse(object, path = []) {
 		for (const [key, value] of Object.entries(object)) {
@@ -197,24 +225,16 @@ export function condenseLossy(uniqueKeys) {
 				if (value[0] !== undefined && value[0] !== null && value[1] !== undefined && value[1] !== null) {
 					if (typeof value[0] === "number" && typeof value[1] === "number") {
 						if ([...new Set(value)].length > 1) {
-							delete getKeyOfObjectByPath(uniqueKeys, path)[key];
-
 							continue;
 						}
 					} else if (typeof value[0] === "string" && typeof value[1] === "string") {
 						if ((value[0] !== "" && value[1] !== "") && (!isNaN(Number(value[0])) && !isNaN(Number(value[1])))) {
 							if ([...new Set(value)].length > 1) {
-								delete getKeyOfObjectByPath(uniqueKeys, path)[key];
-
 								continue;
 							}
 						} else if ((value[0].length === 24 && value[1].length === 24) && (!isNaN(Date.parse(value[0])) && !isNaN(Date.parse(value[1])))) {
-							delete getKeyOfObjectByPath(uniqueKeys, path)[key];
-
 							continue;
 						} else if ((value[0] === "" || value[0].length === 22) && (value[1] === "" || value[1].length === 22)) {
-							delete getKeyOfObjectByPath(uniqueKeys, path)[key];
-
 							continue;
 						}
 					} else if (typeof value[0] === "object" && typeof value[1] === "object") {
@@ -230,13 +250,13 @@ export function condenseLossy(uniqueKeys) {
 							uniqueValuesArray.push(JSON.parse(element as string));
 						}
 
-						getKeyOfObjectByPath(uniqueKeys, path)[key] = uniqueValuesArray;
+						getOrCreateKeyOfObjectByPath(concentrate, path)[key] = uniqueValuesArray;
 
 						continue;
 					}
 				}
 
-				getKeyOfObjectByPath(uniqueKeys, path)[key] = Array.isArray(value[0]) ? [mergeDeep(value)] : [...new Set(value)];
+				getOrCreateKeyOfObjectByPath(concentrate, path)[key] = value; // Array.isArray(value[0]) ? [mergeDeep(value)] : [...new Set(value)];
 			} else if (typeof value === "object" && value !== null) {
 				recurse(value, [...path, key]);
 			} else {
@@ -244,6 +264,8 @@ export function condenseLossy(uniqueKeys) {
 			}
 		}
 	})(uniqueKeys);
+
+	return concentrate;
 }
 
 /**

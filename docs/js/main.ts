@@ -16,7 +16,7 @@ BrowserFS.configure({
 	}
 }, function(error) {
 	if (error) {
-		throw new Error(error.toString());
+		throw new Error(error);
 	}
 });
 
@@ -228,7 +228,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
 				//condenseLossless(uniqueKeys[stringifiedKeys]);
 			}
 
-			//await stringify(path.join(__dirname, "cache", fileName + ".lossless.json"), uniqueKeys, { "space": "\t" });
+			//await stringify(path.join(__dirname, "cache", fileName + ".lossless.json"), uniqueKeys);
 
 			//fs.appendFileSync(path.join(__dirname, "cache", fileName + ".lossless.json"), "\n");
 		}

@@ -1,6 +1,8 @@
 import * as fs from "fs";
 import * as path from "path";
 
+import { config } from "./config";
+
 let peakResidentSetSize = process.memoryUsage().rss;
 
 const intervalReference = setInterval(function checkMemory() {
@@ -28,10 +30,6 @@ const intervalReference = setInterval(function checkMemory() {
 
 	// Run rules
 
-	const outputDirectory = path.join(__dirname, "report"); // path.join(__dirname, "reports", "report-" + new Date().toISOString().substring(0, 19).replace("T", "_").replace(/:/g, "-"));
-
-	const cacheDirectory = path.join(__dirname, "cache");
-
 	const files = fs.readdirSync(path.join(__dirname, "cache")).filter(function(file) {
 		return !file.startsWith(".");
 	});
@@ -39,11 +37,17 @@ const intervalReference = setInterval(function checkMemory() {
 	for (const rule of rules) {
 		console.log("Running rule " + rule.substring(path.join(__dirname, "rules").length + 1) + ":\n");
 
-		await require(rule).default({
-			"cacheDirectory": cacheDirectory,
-			"files": files,
-			"outputDirectory": outputDirectory
-		});
+		const defaultExport = await require(rule).default;
+
+		if (defaultExport.name !== "skip") {
+			await defaultExport({
+				"cacheDirectory": path.join(__dirname, "cache"),
+				"files": files,
+				"outputDirectory": config.get("reportDirectory")
+			});
+		} else {
+			console.warn("Rule skipped.");
+		}
 
 		console.log();
 	}

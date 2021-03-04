@@ -1,5 +1,5 @@
-import * as path from "path";
 import convict from "convict";
+import * as path from "path";
 
 const options = {
 	"env": {
@@ -8,17 +8,17 @@ const options = {
 		"env": "NODE_ENV",
 		"arg": "env"
 	},
-	"debug": {
-		"format": "Boolean",
-		"default": false,
-		"env": "DEBUG",
-		"arg": "debug"
-	},
 	"logDirectory": {
 		"format": "String",
-		"default": path.join(process.env.HOME, "Desktop", "logs"),
+		"default": process.cwd(),
 		"env": "LOG_DIRECTORY",
 		"arg": "log-directory"
+	},
+	"reportDirectory": {
+		"format": "String",
+		"default": path.join(__dirname, "..", "report"),
+		"env": "REPORT_DIRECTORY",
+		"arg": "report-directory"
 	}
 };
 
